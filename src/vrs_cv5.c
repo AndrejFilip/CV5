@@ -5,6 +5,23 @@
  *      Author: Andrej
  */
 #include "vrs_cv5.h"
+#include <stddef.h>
+#include "stm32l1xx.h"
+#include <stdio.h>
+#include <string.h>
+
+double pom = 0;
+int value = 0;
+double pom1 = 0;
+int pom2 = 0;
+char pole[];
+double konverzia(){
+	pom = value;
+	return pom = pom * 0.0008;
+}
+
+
+
 
 void init_adc(void){
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -48,7 +65,7 @@ void init_adc(void){
 
 }
 
-init_NVIC(void){
+void init_NVIC(void){
 	  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 	    NVIC_InitTypeDef NVIC_InitStructure;
 	    NVIC_InitStructure.NVIC_IRQChannel = ADC1_IRQn; //zoznam prerušení nájdete v súbore stm32l1xx.h
@@ -58,7 +75,7 @@ init_NVIC(void){
 	    NVIC_Init(&NVIC_InitStructure);
 	    ADC_ITConfig(ADC1, ADC_IT_EOC, ENABLE);
 }
-int value = 0;
+
 void  ADC1_IRQHandler(void){
     if(ADC1->SR & ADC_SR_EOC){
 
@@ -67,7 +84,7 @@ void  ADC1_IRQHandler(void){
     }
 }
 
-init_USART2(void){
+void init_USART2(void){
 	USART_InitTypeDef USART_InitStructure;
 	  NVIC_InitTypeDef NVIC_InitStructure;
 	  GPIO_InitTypeDef GPIO_InitStructure;
@@ -92,7 +109,7 @@ init_USART2(void){
 	    USART_InitStructure.USART_Parity = USART_Parity_No;
 	    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 	    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-	    USART_Init(USART2, &USART_InitStructure);   // usart 1
+	    USART_Init(USART2, &USART_InitStructure);   //
 	    //configuring interrupts
 	      NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 	      NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
@@ -106,5 +123,64 @@ init_USART2(void){
 	      USART_Cmd(USART2, ENABLE);
 
 	}
+
+void PutUCHART2(char ch){
+    USART_SendData(USART2, (uint8_t) ch);
+        while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);
+}
+
+
+
+
+void putC(char pole[]){
+	int iterator;
+	for(iterator = 0; iterator != '\0'; iterator++){
+		USART_SendData(USART2, pole[iterator]);
+		while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);
+	}
+	USART_SendData(USART2,'\n');
+	while(USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);
+}
+
+void (* gCallback1)(unsigned char) = 0;
+void RegisterCallbackUART2(void *callback){
+    gCallback1 = callback;
+}
+
+
+void USART2_IRQHandler(void)  //USART1_IRQHandler
+{
+    uint16_t pom = 0;
+        if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
+        {
+            USART_ClearITPendingBit(USART2, USART_IT_RXNE);
+            pom = USART_ReceiveData(USART2);
+            if (gCallback1)
+            {
+                gCallback1(pom);
+            }
+        }
+}
+
+void check(uint16_t hodnota){
+	if(hodnota == 'm'){
+		if(pom2 == 0){
+			pom1 = konverzia();
+			uint8_t num1= (uint8_t)pom1;
+			sprintf(pole,"%d.%dV", num1, (uint8_t)((pom1-num1)*100));
+			putC(pole);
+			pom2++;
+		}
+		else{
+			sprintf(pole,"%d",value);
+			putC(pole);
+			pom2 = 0;
+		}
+	}
+}
+
+
+
+
 
 

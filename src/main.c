@@ -31,6 +31,8 @@ SOFTWARE.
 #include "stm32l1xx.h"
 #include "vrs_cv5.h"
 
+ extern int value = 0;
+
 /* Private typedef */
 /* Private define  */
 /* Private macro */
@@ -46,12 +48,14 @@ SOFTWARE.
 **
 **===========================================================================
 */
+
 int main(void)
 {
-  extern int value = 0;
+
   int i = 0;
   init_adc();
-  init_NVIC();
+  init_USART2();
+
 
   /**
   *  IMPORTANT NOTE!
@@ -76,6 +80,7 @@ int main(void)
   /* Infinite loop */
   while (1)
   {
+	  RegisterCallbackUART2(check);
 	i++;
   }
   return 0;
