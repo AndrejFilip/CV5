@@ -7,7 +7,10 @@
 
 #ifndef VRS_CV5_H_
 #define VRS_CV5_H_
-
+void init_adc(void);
+void init_NVIC(void);
+void ADC1_IRQHandler(void);
+void init_USART2(void);
 
 
 #endif /* VRS_CV5_H_ */

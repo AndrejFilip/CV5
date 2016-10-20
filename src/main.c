@@ -29,7 +29,7 @@ SOFTWARE.
 /* Includes */
 #include <stddef.h>
 #include "stm32l1xx.h"
-
+#include "vrs_cv5.h"
 
 /* Private typedef */
 /* Private define  */
@@ -48,7 +48,10 @@ SOFTWARE.
 */
 int main(void)
 {
+  extern int value = 0;
   int i = 0;
+  init_adc();
+  init_NVIC();
 
   /**
   *  IMPORTANT NOTE!
